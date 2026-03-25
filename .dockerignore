@@ -1,0 +1,40 @@
+# .dockerignore — exclude unnecessary files from build context
+
+# Version control
+.git
+.gitignore
+.github
+
+# IDE
+.vscode
+.settings
+.classpath
+.project
+*.swp
+*.swo
+*~
+
+# Build artifacts
+target/
+dist/
+build/
+
+# Dependencies
+.m2
+node_modules
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+*.md
+
+# Test coverage
+coverage/
+.nyc_output

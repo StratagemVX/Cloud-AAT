@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-time chat application with AI chatbot integration built with Spring Boot and WebSocket">
+    <title>ChatApp — Real-Time Messaging</title>
+
+    <!-- Google Font: Inter for modern, clean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Application Stylesheet -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         LOGIN SCREEN
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-container">
+            <!-- Decorative gradient orbs -->
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="logo">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                            <rect width="48" height="48" rx="12" fill="url(#logo-gradient)"/>
+                            <path d="M14 18C14 16.8954 14.8954 16 16 16H32C33.1046 16 34 16.8954 34 18V28C34 29.1046 33.1046 30 32 30H28L24 34L20 30H16C14.8954 30 14 29.1046 14 28V18Z" fill="white" fill-opacity="0.9"/>
+                            <circle cx="20" cy="23" r="2" fill="#7C3AED"/>
+                            <circle cx="24" cy="23" r="2" fill="#7C3AED"/>
+                            <circle cx="28" cy="23" r="2" fill="#7C3AED"/>
+                            <defs>
+                                <linearGradient id="logo-gradient" x1="0" y1="0" x2="48" y2="48">
+                                    <stop stop-color="#7C3AED"/>
+                                    <stop offset="1" stop-color="#2563EB"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h1>Welcome to ChatApp</h1>
+                    <p class="subtitle">Real-time messaging with AI-powered chatbot</p>
+                </div>
+
+                <form id="login-form" class="login-form">
+                    <div class="input-group">
+                        <input type="text" id="username-input" placeholder="Choose a username..."
+                               autocomplete="off" maxlength="30" required>
+                        <span class="input-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <button type="submit" id="join-btn" class="btn-primary">
+                        <span>Join Chat</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="login-footer">
+                    <p>The AI assistant automatically replies to every message</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN CHAT INTERFACE
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="chat-screen" class="chat-screen hidden">
+        <!-- Top Navigation Bar -->
+        <header class="chat-header">
+            <div class="header-left">
+                <div class="logo-small">
+                    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                        <rect width="48" height="48" rx="12" fill="url(#logo-gradient-sm)"/>
+                        <path d="M14 18C14 16.8954 14.8954 16 16 16H32C33.1046 16 34 16.8954 34 18V28C34 29.1046 33.1046 30 32 30H28L24 34L20 30H16C14.8954 30 14 29.1046 14 28V18Z" fill="white" fill-opacity="0.9"/>
+                        <circle cx="20" cy="23" r="1.5" fill="#7C3AED"/>
+                        <circle cx="24" cy="23" r="1.5" fill="#7C3AED"/>
+                        <circle cx="28" cy="23" r="1.5" fill="#7C3AED"/>
+                        <defs>
+                            <linearGradient id="logo-gradient-sm" x1="0" y1="0" x2="48" y2="48">
+                                <stop stop-color="#7C3AED"/>
+                                <stop offset="1" stop-color="#2563EB"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="header-info">
+                    <h2>ChatApp</h2>
+                    <span id="connection-status" class="status-badge">
+                        <span class="status-dot"></span>
+                        Connected
+                    </span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span id="current-user-display" class="current-user"></span>
+                <div id="user-count-badge" class="user-count-badge" title="Total registered users">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span id="total-user-count">0</span> Users
+                </div>
+                <button id="switch-user-btn" class="btn-icon btn-switch" title="Switch User">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 3h5v5"/>
+                        <path d="M8 21H3v-5"/>
+                        <path d="M21 3l-7 7"/>
+                        <path d="M3 21l7-7"/>
+                    </svg>
+                </button>
+                <button id="faq-btn" class="btn-icon" title="Frequently Asked Questions">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </button>
+                <button id="clear-history-btn" class="btn-icon" title="Clear Chat History">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                </button>
+                <button id="logout-btn" class="btn-icon" title="Leave Chat">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="chat-body">
+            <!-- ── Sidebar: Online Users ──────────────────────────── -->
+            <aside id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <h3>Online Users</h3>
+                    <span id="online-count" class="badge">0</span>
+                </div>
+                <ul id="online-users-list" class="user-list">
+                    <!-- Populated dynamically by JavaScript -->
+                </ul>
+                <div class="sidebar-footer">
+                    <div class="bot-info">
+                        <span class="bot-avatar">🤖</span>
+                        <div>
+                            <strong>ChatBot</strong>
+                            <small>Always online</small>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ── Chat Messages Area ─────────────────────────────── -->
+            <main class="chat-main">
+                <div id="message-area" class="message-area">
+                    <!-- Welcome message (static) -->
+                    <div class="welcome-message">
+                        <div class="welcome-icon">💬</div>
+                        <h3>Welcome to the chat!</h3>
+                        <p>Messages will appear here. The AI assistant replies to every message automatically!</p>
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <div class="message-input-container">
+                    <form id="message-form" class="message-form">
+                        <button type="button" id="random-question-btn" class="btn-random" title="Ask a random question">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="2" width="20" height="20" rx="4"/>
+                                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/>
+                                <circle cx="15.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/>
+                                <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor" stroke="none"/>
+                                <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor" stroke="none"/>
+                                <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                            </svg>
+                        </button>
+                        <input type="text" id="message-input" placeholder="Type a message... (AI auto-replies)"
+                               autocomplete="off" maxlength="2000">
+                        <button type="submit" id="send-btn" class="btn-send" title="Send Message">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FAQ PANEL — slide-in panel listing all chatbot questions
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="faq-overlay" class="faq-overlay hidden"></div>
+    <aside id="faq-panel" class="faq-panel hidden">
+        <div class="faq-panel-header">
+            <div class="faq-panel-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <h3>Frequently Asked Questions</h3>
+            </div>
+            <button id="faq-close-btn" class="faq-close-btn" title="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <p class="faq-panel-subtitle">Click any question to ask the chatbot</p>
+        <div id="faq-list" class="faq-list">
+            <div class="faq-loading">Loading questions…</div>
+        </div>
+    </aside>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SWITCH USER MODAL
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="switch-user-overlay" class="switch-user-overlay hidden"></div>
+    <div id="switch-user-modal" class="switch-user-modal hidden">
+        <div class="switch-modal-header">
+            <div class="switch-modal-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 3h5v5"/>
+                    <path d="M8 21H3v-5"/>
+                    <path d="M21 3l-7 7"/>
+                    <path d="M3 21l7-7"/>
+                </svg>
+                <h3>Switch User</h3>
+            </div>
+            <button id="switch-modal-close" class="faq-close-btn" title="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <p class="switch-modal-subtitle">Select a user to switch to, or type a new username</p>
+        <div id="switch-user-list" class="switch-user-list">
+            <div class="faq-loading">Loading users…</div>
+        </div>
+        <div class="switch-modal-footer">
+            <div class="switch-new-user-group">
+                <input type="text" id="switch-new-username" placeholder="Or enter a new username..." autocomplete="off" maxlength="30">
+                <button id="switch-new-user-btn" class="btn-primary btn-sm">Join as New</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SCRIPTS — SockJS + STOMP.js from CDN, then our app logic
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
