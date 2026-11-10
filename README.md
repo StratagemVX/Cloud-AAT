@@ -74,7 +74,7 @@ cd Cloud-AAT
 ./mvnw clean package
 ./mvnw spring-boot:run
 ```
-Web client will be accessible at: `http://localhost:8080`
+The checked-in `application.properties` sets `server.port=5000`; after startup, use `http://localhost:5000` unless overridden. The Maven CI workflow targets Java 21.
 
 ### Docker Execution
 ```bash
@@ -82,6 +82,10 @@ docker-compose up --build
 ```
 
 ---
+
+## Build, Test & Configuration
+
+The repository CI workflow runs `mvn clean verify` and `mvn clean package -DskipTests`; the Java project declares Spring Boot 3.4.3 and Java 21 in `pom.xml`. The default local datasource is an in-memory H2 database with `create-drop`, intended for development/testing. Configure a persistent production database, credentials, CORS, and external integration secrets through deployment configuration before production use. Do not copy example secrets into source control.
 
 ## Contributor Attribution & Profile
 
