@@ -90,3 +90,19 @@ docker-compose up --build
 - **GitHub:** [https://github.com/StratagemVX](https://github.com/StratagemVX)
 - **Portfolio:** [https://chethan-kumar-portfolio.vercel.app/](https://chethan-kumar-portfolio.vercel.app/)
 - **LinkedIn:** [https://linkedin.com/in/chethan-kumar-b-s-781a002bb](https://linkedin.com/in/chethan-kumar-b-s-781a002bb)
+
+## Verification and maintenance
+
+Keep this project/profile overview synchronized with the actual repositories and current implementation.
+
+### Verification commands
+
+No root package manifest was available during this pass. Use each project's actual dependency manifest and CI configuration to determine appropriate verification commands.
+
+### Contribution and security notes
+
+- Verify repository links, project ownership, feature claims, and screenshots before publishing updates.
+- Never publish credentials, private keys, personal data, or local environment files.
+- Use placeholder-only configuration examples and deployment-managed secrets.
+- Include reproduction steps and expected/actual behavior in issue reports.
+- Run relevant checks before merging code changes.
