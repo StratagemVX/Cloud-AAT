@@ -229,12 +229,12 @@ function renderChatMessage(message) {
 
     div.innerHTML = `
         <div class="message-avatar" style="background: ${avatarColor}">
-            ${initials}
+            ${escapeHtml(initials)}
         </div>
         <div class="message-bubble">
             <span class="message-sender">${escapeHtml(message.sender)}</span>
             <span class="message-text">${escapeHtml(message.content)}</span>
-            <span class="message-time">${message.timestamp || ''}</span>
+            <span class="message-time">${escapeHtml(message.timestamp || '')}</span>
         </div>
     `;
 
@@ -256,7 +256,7 @@ function renderBotMessage(message) {
         <div class="message-bubble">
             <span class="message-sender">ChatBot</span>
             <span class="message-text">${escapeHtml(message.content)}</span>
-            <span class="message-time">${message.timestamp || ''}</span>
+            <span class="message-time">${escapeHtml(message.timestamp || '')}</span>
         </div>
     `;
 
@@ -301,7 +301,7 @@ function refreshOnlineUsers() {
 
                 li.innerHTML = `
                     <div class="user-avatar" style="background: ${color}">
-                        ${initials}
+                        ${escapeHtml(initials)}
                     </div>
                     <span class="user-name">
                         ${escapeHtml(user.username)}${isCurrentUser ? ' (You)' : ''}
@@ -662,7 +662,7 @@ function loadSwitchUserList() {
                 const btn = document.createElement('button');
                 btn.className = `switch-user-item${isCurrentUser ? ' active' : ''}`;
                 btn.innerHTML = `
-                    <div class="user-avatar" style="background: ${color}">${initials}</div>
+                    <div class="user-avatar" style="background: ${color}">${escapeHtml(initials)}</div>
                     <span>${escapeHtml(user.username)}</span>
                     ${isCurrentUser ? '<span class="you-tag">You</span>' : ''}
                     <span class="user-status-tag ${statusClass}">${user.status}</span>
