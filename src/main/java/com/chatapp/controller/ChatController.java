@@ -37,6 +37,9 @@ public class ChatController {
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
 
+    @org.springframework.beans.factory.annotation.Value("${app.admin.token:}")
+    private String adminToken = "";
+
     public ChatController(ChatService chatService,
             ChatbotService chatbotService,
             UserService userService,
@@ -45,6 +48,10 @@ public class ChatController {
         this.chatbotService = chatbotService;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
+    }
+
+    void setAdminToken(String adminToken) {
+        this.adminToken = adminToken != null ? adminToken : "";
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -61,8 +68,25 @@ public class ChatController {
      * </p>
      */
     @MessageMapping("/chat.sendMessage")
-    public void sendMessage(@Payload MessageDTO messageDTO) {
-        // Persist the user's message
+    public void sendMessage(@Payload MessageDTO messageDTO, SimpMessageHeaderAccessor headerAccessor) {
+        java.util.Map<String, Object> sessionAttrs =
+                headerAccessor != null ? headerAccessor.getSessionAttributes() : null;
+        String sessionUsername = sessionAttrs != null
+                ? (String) sessionAttrs.get("username")
+                : null;
+        if (sessionUsername == null || sessionUsername.isBlank()) {
+            throw new IllegalStateException("Session user is not registered; send /app/chat.addUser first");
+        }
+        String rawContent = messageDTO != null && messageDTO.getContent() != null
+                ? messageDTO.getContent().trim()
+                : "";
+        if (rawContent.isEmpty() || rawContent.length() > 2000) {
+            throw new IllegalArgumentException("Message content must be between 1 and 2000 characters");
+        }
+
+        // Bind sender to the registered WebSocket session username (never trust payload sender).
+        messageDTO.setSender(sessionUsername);
+        messageDTO.setContent(rawContent);
         messageDTO.setType("CHAT");
         messageDTO.setTimestamp(LocalDateTime.now().format(FMT));
         chatService.saveMessage(messageDTO);
@@ -107,14 +131,24 @@ public class ChatController {
     @SendTo("/topic/public")
     public MessageDTO addUser(@Payload MessageDTO messageDTO,
             SimpMessageHeaderAccessor headerAccessor) {
+        String rawSender = messageDTO != null && messageDTO.getSender() != null
+                ? messageDTO.getSender().trim()
+                : "";
+        if (rawSender.length() < 2 || rawSender.length() > 30 || "ChatBot".equalsIgnoreCase(rawSender)) {
+            throw new IllegalArgumentException("Username must be between 2 and 30 characters and not reserved");
+        }
+
         // Register the user (creates or re-activates)
-        userService.connectUser(messageDTO.getSender());
+        userService.connectUser(rawSender);
 
-        // Store username in WebSocket session for disconnect detection
-        headerAccessor.getSessionAttributes().put("username", messageDTO.getSender());
+        // Store username in WebSocket session for disconnect & sender-binding enforcement
+        if (headerAccessor != null && headerAccessor.getSessionAttributes() != null) {
+            headerAccessor.getSessionAttributes().put("username", rawSender);
+        }
 
+        messageDTO.setSender(rawSender);
         messageDTO.setType("JOIN");
-        messageDTO.setContent(messageDTO.getSender() + " joined the chat!");
+        messageDTO.setContent(rawSender + " joined the chat!");
         messageDTO.setTimestamp(LocalDateTime.now().format(FMT));
         chatService.saveMessage(messageDTO);
         return messageDTO;
@@ -133,10 +167,25 @@ public class ChatController {
     }
 
     /**
-     * Delete all chat messages (clear history).
+     * Delete all chat messages (clear history) only when authorized with X-Admin-Token.
      */
     @org.springframework.web.bind.annotation.DeleteMapping("/api/messages")
-    public org.springframework.http.ResponseEntity<Void> clearHistory() {
+    public org.springframework.http.ResponseEntity<Void> clearHistory(
+            @org.springframework.web.bind.annotation.RequestHeader(value = "X-Admin-Token", required = false)
+            String providedToken) {
+        if (adminToken == null || adminToken.isBlank()) {
+            return org.springframework.http.ResponseEntity
+                    .status(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE)
+                    .build();
+        }
+        if (providedToken == null
+                || !java.security.MessageDigest.isEqual(
+                        adminToken.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        providedToken.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
+            return org.springframework.http.ResponseEntity
+                    .status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
         chatService.clearHistory();
         return org.springframework.http.ResponseEntity.noContent().build();
     }

@@ -16,17 +16,17 @@ RUN mvn clean package -DskipTests
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
 
+RUN addgroup -S -g 1000 appgroup && adduser -S -u 1000 -G appgroup appuser
+
 WORKDIR /app
 
 # Copy JAR from builder
 COPY --from=builder /app/target/chat-application-*.jar chat-application.jar
 
+USER appuser
+
 # Expose port
 EXPOSE 5000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD java -jar chat-application.jar --version || exit 1
 
 # Run application
 ENTRYPOINT ["java", "-jar", "chat-application.jar"]

@@ -36,10 +36,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * SockJS fallback is enabled so the app works even when
      * native WebSocket is unavailable.
      */
+    @org.springframework.beans.factory.annotation.Value(
+            "${app.cors.allowed-origins:" + CorsOriginUtils.DEFAULT_ALLOWED_ORIGINS + "}")
+    private String allowedOriginsRaw = CorsOriginUtils.DEFAULT_ALLOWED_ORIGINS;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+        String[] origins = CorsOriginUtils.parseAllowedOrigins(allowedOriginsRaw);
+        var registration = registry.addEndpoint("/ws");
+        if (origins.length > 0) {
+            registration.setAllowedOrigins(origins);
+        }
+        registration.withSockJS();
     }
 }

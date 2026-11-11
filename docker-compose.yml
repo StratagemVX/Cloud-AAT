@@ -13,12 +13,11 @@ services:
       SERVER_PORT: "5000"
       SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
       SPRING_DATASOURCE_DRIVERCLASSNAME: org.h2.Driver
-      SPRING_H2_CONSOLE_ENABLED: "true"
+      SPRING_H2_CONSOLE_ENABLED: "false"
     volumes:
-      - ./src:/app/src
       - chat-logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -27,14 +26,15 @@ services:
       - chat-network
     restart: unless-stopped
 
-  # Optional: H2 Console for development
+  # Optional: H2 Console strictly for local debugging (use `--profile dev`)
   h2-console:
     image: oscarfonts/h2
+    profiles: ["dev"]
     container_name: h2-console
     ports:
-      - "8082:8082"
+      - "127.0.0.1:8082:8082"
     environment:
-      H2_OPTIONS: -web -webAllowOthers -ifExists
+      H2_OPTIONS: -web -ifExists
     volumes:
       - h2-data:/h2data
     networks:

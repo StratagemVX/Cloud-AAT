@@ -270,7 +270,8 @@ function renderBotMessage(message) {
  */
 function renderSystemMessage(text, type) {
     const div = document.createElement('div');
-    div.className = `system-message ${type}`;
+    const safeType = type === 'join' ? 'join' : 'leave';
+    div.className = `system-message ${safeType}`;
     div.innerHTML = `<span>${escapeHtml(text)}</span>`;
 
     removeWelcome();
@@ -475,7 +476,13 @@ document.head.appendChild(shakeStyle);
  * Deletes all messages from the server and clears the chat area.
  */
 clearHistoryBtn.addEventListener('click', function () {
-    fetch('/api/messages', { method: 'DELETE' })
+    const adminToken = window.prompt('Enter the admin token to clear chat history:');
+    if (!adminToken) return;
+
+    fetch('/api/messages', {
+        method: 'DELETE',
+        headers: { 'X-Admin-Token': adminToken },
+    })
         .then(response => {
             if (response.ok) {
                 // Clear the message area in the UI
