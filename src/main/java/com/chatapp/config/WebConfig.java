@@ -1,5 +1,6 @@
 package com.chatapp.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -11,14 +12,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    /** Allow cross-origin requests during development. */
+    @Value("${app.cors.allowed-origins:" + CorsOriginUtils.DEFAULT_ALLOWED_ORIGINS + "}")
+    private String allowedOriginsRaw = CorsOriginUtils.DEFAULT_ALLOWED_ORIGINS;
+
+    /** Allow cross-origin requests only from explicitly configured origins. */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOriginPatterns("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+        String[] origins = CorsOriginUtils.parseAllowedOrigins(allowedOriginsRaw);
+        if (origins.length > 0) {
+            registry.addMapping("/api/**")
+                    .allowedOrigins(origins)
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                    .allowedHeaders("Content-Type", "Authorization", "X-Admin-Token", "X-Requested-With")
+                    .allowCredentials(true);
+        }
     }
 
     /** Serve static assets (HTML / CSS / JS) from classpath:/static/. */

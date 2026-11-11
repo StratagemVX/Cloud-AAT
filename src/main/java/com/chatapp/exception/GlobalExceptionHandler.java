@@ -20,11 +20,13 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
+        org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class)
+                .error("Unhandled exception while processing request", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "timestamp", LocalDateTime.now().toString(),
                 "status", 500,
                 "error", "Internal Server Error",
-                "message", ex.getMessage() != null ? ex.getMessage() : "Unexpected error"));
+                "message", "An unexpected internal error occurred"));
     }
 
     /**

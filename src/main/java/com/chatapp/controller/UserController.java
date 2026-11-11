@@ -57,7 +57,11 @@ public class UserController {
      */
     @PostMapping("/connect")
     public ResponseEntity<UserDTO> connect(@RequestParam String username) {
-        return ResponseEntity.ok(userService.connectUser(username));
+        String normalized = username != null ? username.trim() : "";
+        if (normalized.length() < 2 || normalized.length() > 30 || "ChatBot".equalsIgnoreCase(normalized)) {
+            throw new IllegalArgumentException("Username must be between 2 and 30 characters and not reserved");
+        }
+        return ResponseEntity.ok(userService.connectUser(normalized));
     }
 
     /**
@@ -67,7 +71,10 @@ public class UserController {
      */
     @PostMapping("/disconnect")
     public ResponseEntity<Void> disconnect(@RequestParam String username) {
-        userService.disconnectUser(username);
+        String normalized = username != null ? username.trim() : "";
+        if (!normalized.isEmpty() && normalized.length() <= 30) {
+            userService.disconnectUser(normalized);
+        }
         return ResponseEntity.ok().build();
     }
 }

@@ -229,12 +229,12 @@ function renderChatMessage(message) {
 
     div.innerHTML = `
         <div class="message-avatar" style="background: ${avatarColor}">
-            ${initials}
+            ${escapeHtml(initials)}
         </div>
         <div class="message-bubble">
             <span class="message-sender">${escapeHtml(message.sender)}</span>
             <span class="message-text">${escapeHtml(message.content)}</span>
-            <span class="message-time">${message.timestamp || ''}</span>
+            <span class="message-time">${escapeHtml(message.timestamp || '')}</span>
         </div>
     `;
 
@@ -256,7 +256,7 @@ function renderBotMessage(message) {
         <div class="message-bubble">
             <span class="message-sender">ChatBot</span>
             <span class="message-text">${escapeHtml(message.content)}</span>
-            <span class="message-time">${message.timestamp || ''}</span>
+            <span class="message-time">${escapeHtml(message.timestamp || '')}</span>
         </div>
     `;
 
@@ -270,7 +270,8 @@ function renderBotMessage(message) {
  */
 function renderSystemMessage(text, type) {
     const div = document.createElement('div');
-    div.className = `system-message ${type}`;
+    const safeType = type === 'join' ? 'join' : 'leave';
+    div.className = `system-message ${safeType}`;
     div.innerHTML = `<span>${escapeHtml(text)}</span>`;
 
     removeWelcome();
@@ -301,7 +302,7 @@ function refreshOnlineUsers() {
 
                 li.innerHTML = `
                     <div class="user-avatar" style="background: ${color}">
-                        ${initials}
+                        ${escapeHtml(initials)}
                     </div>
                     <span class="user-name">
                         ${escapeHtml(user.username)}${isCurrentUser ? ' (You)' : ''}
@@ -475,7 +476,13 @@ document.head.appendChild(shakeStyle);
  * Deletes all messages from the server and clears the chat area.
  */
 clearHistoryBtn.addEventListener('click', function () {
-    fetch('/api/messages', { method: 'DELETE' })
+    const adminToken = window.prompt('Enter the admin token to clear chat history:');
+    if (!adminToken) return;
+
+    fetch('/api/messages', {
+        method: 'DELETE',
+        headers: { 'X-Admin-Token': adminToken },
+    })
         .then(response => {
             if (response.ok) {
                 // Clear the message area in the UI
@@ -662,7 +669,7 @@ function loadSwitchUserList() {
                 const btn = document.createElement('button');
                 btn.className = `switch-user-item${isCurrentUser ? ' active' : ''}`;
                 btn.innerHTML = `
-                    <div class="user-avatar" style="background: ${color}">${initials}</div>
+                    <div class="user-avatar" style="background: ${color}">${escapeHtml(initials)}</div>
                     <span>${escapeHtml(user.username)}</span>
                     ${isCurrentUser ? '<span class="you-tag">You</span>' : ''}
                     <span class="user-status-tag ${statusClass}">${user.status}</span>

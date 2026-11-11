@@ -43,6 +43,7 @@ jobs:
           path: target/surefire-reports/
 
   security-scan:
+    needs: [build-and-test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -51,8 +52,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Restore the Maven cache warmed by the successful build-and-test job.
+      # This prevents Trivy from resolving the same POMs against Maven Central again.
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
       - name: Run security scanning
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@38b337fff0a2f984d5be173c99e3f633438167ec
         with:
           scan-type: 'fs'
           scan-ref: '.'
